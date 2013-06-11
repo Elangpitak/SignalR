@@ -90,22 +90,7 @@ namespace Owin
                 // If we don't get a valid instance name then generate a random one
                 string instanceName = env.GetAppInstanceName() ?? Guid.NewGuid().ToString();
 
-                // Use the data protection provider from app builder and fallback to the
-                // Dpapi provider
-                IDataProtectionProvider provider = builder.GetDataProtectionProvider() ?? new DpapiDataProtectionProvider();
-                IProtectedData protectedData;
-
-                // If we're using DPAPI then fallback to the default protected data if running
-                // on mono since it doesn't support any of this
-                if (provider is DpapiDataProtectionProvider && 
-                    MonoUtility.IsRunningMono)
-                {
-                    protectedData = new DefaultProtectedData();
-                }
-                else
-                {
-                    protectedData = new DataProtectionProviderProtectedData(provider);
-                }
+                var protectedData = new DataProtectionProviderProtectedData(builder.CreateDataProtector);
 
                 resolver.Register(typeof(IProtectedData), () => protectedData);
 

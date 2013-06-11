@@ -8,13 +8,13 @@ namespace Microsoft.AspNet.SignalR.Infrastructure
     {
         private static readonly UTF8Encoding _encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-        private readonly IDataProtectionProvider _provider;
+        private readonly Func<string[], IDataProtector> _provider;
 
         // Known protected data providers
         private readonly IDataProtector _connectionTokenProtector;
         private readonly IDataProtector _groupsProtector;
 
-        public DataProtectionProviderProtectedData(IDataProtectionProvider provider)
+        public DataProtectionProviderProtectedData(Func<string[], IDataProtector> provider)
         {
             if (provider == null)
             {
@@ -22,8 +22,8 @@ namespace Microsoft.AspNet.SignalR.Infrastructure
             }
 
             _provider = provider;
-            _connectionTokenProtector = provider.Create(Purposes.ConnectionToken);
-            _groupsProtector = provider.Create(Purposes.Groups);
+            _connectionTokenProtector = provider(new[] { Purposes.ConnectionToken });
+            _groupsProtector = provider(new[] { Purposes.Groups });
         }
 
         public string Protect(string data, string purpose)
@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.SignalR.Infrastructure
                     return _groupsProtector;
             }
 
-            return _provider.Create(purpose);
+            return _provider(new[] { purpose });
         }
     }
 }
